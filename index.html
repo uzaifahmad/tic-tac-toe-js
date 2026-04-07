@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tic Tac Toe</title>
     <link rel="stylesheet" href="style.css">
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 fill=%22%23FFF8E7%22/><line x1=%2225%22 y1=%220%22 x2=%2225%22 y2=%22100%22 stroke=%22%232C3E50%22 stroke-width=%228%22/><line x1=%2275%22 y1=%220%22 x2=%2275%22 y2=%22100%22 stroke=%22%232C3E50%22 stroke-width=%228%22/><line x1=%220%22 y1=%2225%22 x2=%22100%22 y2=%2225%22 stroke=%22%232C3E50%22 stroke-width=%228%22/><line x1=%220%22 y1=%2275%22 x2=%22100%22 y2=%2275%22 stroke=%22%232C3E50%22 stroke-width=%228%22/></svg>">
 </head>
 <body data-mode="home">
     <!-- Home Screen -->
@@ -67,19 +69,33 @@
 
         <div id="status" class="status-bar"></div>
 
-        <div id="board" class="board">
-            <button class="cell" data-index="0"></button>
-            <button class="cell" data-index="1"></button>
-            <button class="cell" data-index="2"></button>
-            <button class="cell" data-index="3"></button>
-            <button class="cell" data-index="4"></button>
-            <button class="cell" data-index="5"></button>
-            <button class="cell" data-index="6"></button>
-            <button class="cell" data-index="7"></button>
-            <button class="cell" data-index="8"></button>
+        <div class="game-container">
+            <div id="board" class="board">
+                <button class="cell" data-index="0"></button>
+                <button class="cell" data-index="1"></button>
+                <button class="cell" data-index="2"></button>
+                <button class="cell" data-index="3"></button>
+                <button class="cell" data-index="4"></button>
+                <button class="cell" data-index="5"></button>
+                <button class="cell" data-index="6"></button>
+                <button class="cell" data-index="7"></button>
+                <button class="cell" data-index="8"></button>
+            </div>
+
+            <!-- Leaderboard -->
+            <div id="leaderboard" class="leaderboard">
+                <h3>📊 Stats</h3>
+                <div id="stats-content">
+                    <p>Wins: <span id="stat-wins">0</span></p>
+                    <p>Losses: <span id="stat-losses">0</span></p>
+                    <p>Draws: <span id="stat-draws">0</span></p>
+                </div>
+            </div>
         </div>
 
-        <button class="btn-rematch" id="btn-rematch">Rematch</button>
+        <div class="game-actions">
+            <button class="btn-rematch" id="btn-rematch">🔄 Rematch</button>
+        </div>
     </div>
 
     <!-- Firebase SDK (compat 10.x) -->

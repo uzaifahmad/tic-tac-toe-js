@@ -33,6 +33,10 @@ function checkWinner(board) {
 
 // Helper: Check for draw
 function checkDraw(board) {
+  if (!Array.isArray(board)) {
+    console.error('checkDraw: board is not an array', board);
+    return false;
+  }
   return board.every(cell => cell !== null);
 }
 

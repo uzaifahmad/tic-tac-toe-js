@@ -37,7 +37,12 @@ const state = {
   currentTurn: 'X',
   gameStatus: 'waiting',
   difficulty: null,
-  roomId: null
+  roomId: null,
+  stats: {
+    wins: localStorage.getItem('tictactoe_wins') ? parseInt(localStorage.getItem('tictactoe_wins')) : 0,
+    losses: localStorage.getItem('tictactoe_losses') ? parseInt(localStorage.getItem('tictactoe_losses')) : 0,
+    draws: localStorage.getItem('tictactoe_draws') ? parseInt(localStorage.getItem('tictactoe_draws')) : 0
+  }
 };
 
 // Firebase listener reference for cleanup
@@ -65,8 +70,31 @@ function checkWinner(board) {
   return null;
 }
 
+// Helper: Convert Firebase board object to array
+function convertBoardToArray(boardData) {
+  if (Array.isArray(boardData)) {
+    return boardData;
+  }
+  if (!boardData || typeof boardData !== 'object') {
+    return Array(9).fill(null);
+  }
+  // Convert object to array [0: 'X', 1: null, ...] => ['X', null, ...]
+  const board = Array(9).fill(null);
+  Object.keys(boardData).forEach(index => {
+    const idx = parseInt(index);
+    if (idx >= 0 && idx < 9) {
+      board[idx] = boardData[idx];
+    }
+  });
+  return board;
+}
+
 // Helper: Check for draw
 function checkDraw(board) {
+  if (!Array.isArray(board)) {
+    console.error('checkDraw: board is not an array', board);
+    return false;
+  }
   return board.every(cell => cell !== null);
 }
 
@@ -107,22 +135,55 @@ function updateStatus(text) {
   document.getElementById('status').textContent = text;
 }
 
+// Launch firecracker animation on win
+function launchFirecrackers() {
+  const emojis = ['🎉', '✨', '🎊', '⭐', '🌟', '💫', '🎆', '🔥'];
+  const board = document.getElementById('board');
+  const boardRect = board.getBoundingClientRect();
+
+  for (let i = 0; i < 30; i++) {
+    const firecracker = document.createElement('div');
+    firecracker.className = 'firecracker';
+    firecracker.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+
+    // Random position within board area
+    const randomX = Math.random() * boardRect.width + boardRect.left;
+    const randomY = Math.random() * boardRect.height + boardRect.top;
+
+    firecracker.style.left = randomX + 'px';
+    firecracker.style.top = randomY + 'px';
+    firecracker.style.animationDelay = Math.random() * 0.2 + 's';
+
+    document.body.appendChild(firecracker);
+
+    // Clean up after animation
+    setTimeout(() => firecracker.remove(), 1600);
+  }
+
+  // Shake the board
+  board.classList.add('game-win');
+  setTimeout(() => board.classList.remove('game-win'), 600);
+}
+
 // Show game result
 function renderResult(outcome, winner) {
   let text = '';
   if (outcome === 'won') {
     if (state.mode === 'ai') {
-      text = winner === 'X' ? 'You won!' : 'You lost!';
+      text = winner === 'X' ? 'You won! 🎉' : 'You lost! 😢';
     } else {
-      text = `${winner} wins!`;
+      text = `${winner} wins! 🎉`;
     }
     state.gameStatus = 'won';
+    // Launch firecracker animation on win
+    launchFirecrackers();
   } else if (outcome === 'draw') {
-    text = "It's a draw!";
+    text = "It's a draw! 🤝";
     state.gameStatus = 'draw';
   }
 
   updateStatus(text);
+  updateStats(outcome, winner);
 
   // Disable all cells
   document.querySelectorAll('.cell').forEach(cell => {
@@ -131,6 +192,41 @@ function renderResult(outcome, winner) {
 
   // Show rematch button
   document.getElementById('btn-rematch').style.display = 'block';
+}
+
+// Update leaderboard display
+function updateLeaderboard() {
+  document.getElementById('stat-wins').textContent = state.stats.wins;
+  document.getElementById('stat-losses').textContent = state.stats.losses;
+  document.getElementById('stat-draws').textContent = state.stats.draws;
+}
+
+// Update stats based on game result
+function updateStats(outcome, winner) {
+  if (state.mode === 'ai') {
+    if (outcome === 'won') {
+      if (winner === 'X') {
+        state.stats.wins++;
+      } else {
+        state.stats.losses++;
+      }
+    } else if (outcome === 'draw') {
+      state.stats.draws++;
+    }
+    localStorage.setItem('tictactoe_wins', state.stats.wins);
+    localStorage.setItem('tictactoe_losses', state.stats.losses);
+    localStorage.setItem('tictactoe_draws', state.stats.draws);
+    updateLeaderboard();
+  } else if (state.mode === 'offline') {
+    if (outcome === 'won') {
+      state.stats.wins++;
+    } else if (outcome === 'draw') {
+      state.stats.draws++;
+    }
+    localStorage.setItem('tictactoe_wins', state.stats.wins);
+    localStorage.setItem('tictactoe_draws', state.stats.draws);
+    updateLeaderboard();
+  }
 }
 
 // Handle online cell click
@@ -158,16 +254,23 @@ async function handleOnlineCellClick(index) {
 function onRoomUpdate(data) {
   if (!data) return;
 
-  state.board = data.board || Array(9).fill(null);
+  const previousBoard = state.board;
+  state.board = convertBoardToArray(data.board);
   state.currentTurn = data.turn || 'X';
   state.gameStatus = data.status || 'waiting';
 
+  // Only check for winner/draw if board has been updated (not on initial load)
+  const boardHasMove = state.board.some(cell => cell !== null);
+
   // Check for winner
-  const winner = checkWinner(state.board);
-  if (winner) {
-    state.gameStatus = 'won';
-  } else if (checkDraw(state.board)) {
-    state.gameStatus = 'draw';
+  let winner = null;
+  if (boardHasMove) {
+    winner = checkWinner(state.board);
+    if (winner) {
+      state.gameStatus = 'won';
+    } else if (checkDraw(state.board)) {
+      state.gameStatus = 'draw';
+    }
   }
 
   // Transition to game screen when game starts
@@ -273,6 +376,7 @@ document.addEventListener('DOMContentLoaded', () => {
     state.currentTurn = 'X';
     state.gameStatus = 'playing';
     initOfflineGame('friend');
+    document.getElementById('leaderboard').style.display = 'block';
     showScreen('screen-game');
     document.getElementById('btn-rematch').style.display = 'block';
   });
@@ -286,6 +390,7 @@ document.addEventListener('DOMContentLoaded', () => {
     state.currentTurn = 'X';
     state.gameStatus = 'playing';
     initOfflineGame('ai', difficulty);
+    document.getElementById('leaderboard').style.display = 'block';
     showScreen('screen-game');
     document.getElementById('btn-rematch').style.display = 'block';
   });
@@ -299,10 +404,13 @@ document.addEventListener('DOMContentLoaded', () => {
         console.error('Error restarting game:', error);
       }
     } else {
+      // Reset offline game state
+      resetOfflineGame();
       state.gameStatus = 'playing';
       state.board = Array(9).fill(null);
-      resetOfflineGame();
-      showScreen('screen-game');
+      // Render fresh board
+      renderBoard(state.board);
+      updateStatus(state.mode === 'ai' ? 'Your turn (X)' : 'Player X\'s turn');
     }
     document.getElementById('btn-rematch').style.display = 'none';
   });
@@ -314,6 +422,7 @@ document.addEventListener('DOMContentLoaded', () => {
     state.gameStatus = 'waiting';
     state.board = Array(9).fill(null);
     document.getElementById('btn-rematch').style.display = 'none';
+    document.getElementById('leaderboard').style.display = 'none';
     showScreen('screen-home');
   });
 
@@ -328,6 +437,9 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
   });
+
+  // Initialize leaderboard
+  updateLeaderboard();
 
   showScreen('screen-home');
 });

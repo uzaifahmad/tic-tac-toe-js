@@ -11,8 +11,13 @@ export function initFirebase(config) {
 export async function createRoom(roomId, hostPlayer) {
   try {
     const db = window.firebase.database();
+    // Store board as object (not array) for consistency with Firebase updates
+    const board = {};
+    for (let i = 0; i < 9; i++) {
+      board[i] = null;
+    }
     const initialState = {
-      board: Array(9).fill(null),
+      board: board,
       turn: 'X',
       players: { X: hostPlayer },
       status: 'waiting'
@@ -70,8 +75,12 @@ export function listenRoom(roomId, callback) {
 export async function setRematch(roomId) {
   try {
     const db = window.firebase.database();
+    const board = {};
+    for (let i = 0; i < 9; i++) {
+      board[i] = null;
+    }
     const updates = {};
-    updates[`rooms/${roomId}/board`] = Array(9).fill(null);
+    updates[`rooms/${roomId}/board`] = board;
     updates[`rooms/${roomId}/turn`] = 'X';
     updates[`rooms/${roomId}/status`] = 'playing';
     await db.ref().update(updates);
