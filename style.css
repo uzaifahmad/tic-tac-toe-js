@@ -1,0 +1,384 @@
+@import url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;700&display=swap');
+
+:root {
+  --bg: #FFF8E7;
+  --primary: #FF6B6B;
+  --secondary: #4ECDC4;
+  --accent: #FFE66D;
+  --dark: #2C3E50;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background-color: var(--bg);
+  font-family: 'Nunito', sans-serif;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 20px;
+}
+
+h1 {
+  font-family: 'Fredoka One', sans-serif;
+  font-size: 2.5rem;
+  color: var(--primary);
+  text-shadow: 3px 3px 0 var(--dark);
+  margin-bottom: 30px;
+}
+
+h2 {
+  font-family: 'Fredoka One', sans-serif;
+  color: var(--dark);
+  margin-bottom: 20px;
+}
+
+.screen {
+  display: none;
+  background: white;
+  border-radius: 20px;
+  padding: 40px;
+  max-width: 420px;
+  width: 100%;
+  box-shadow: 4px 4px 0 var(--dark);
+  border: 3px solid var(--dark);
+}
+
+.screen.active {
+  display: block;
+}
+
+/* Home Screen */
+#screen-home {
+  text-align: center;
+  max-width: 100%;
+  padding: 30px 20px;
+}
+
+.mode-cards {
+  display: flex;
+  flex-direction: row;
+  gap: 16px;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-top: 30px;
+}
+
+.card {
+  background: white;
+  border: 3px solid var(--dark);
+  border-radius: 20px;
+  padding: 24px 20px;
+  min-width: 140px;
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.2s ease;
+  box-shadow: 4px 4px 0 var(--dark);
+}
+
+.card:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 6px 6px 0 var(--dark);
+}
+
+.card.active {
+  background: var(--accent);
+  transform: scale(1.03);
+}
+
+.card-emoji {
+  font-size: 2.5rem;
+  display: block;
+  margin-bottom: 12px;
+}
+
+.card h2 {
+  margin: 10px 0;
+  font-size: 1.3rem;
+}
+
+.card-subtitle {
+  font-size: 0.85rem;
+  color: var(--dark);
+  margin: 5px 0 15px 0;
+  opacity: 0.7;
+}
+
+.join-section {
+  margin-top: 15px;
+}
+
+.join-section input {
+  width: 100%;
+  margin: 5px 0;
+}
+
+.join-section button {
+  width: 100%;
+  margin: 10px 0;
+}
+
+/* Difficulty Selector */
+.difficulty-selector {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin: 15px 0;
+}
+
+.difficulty-selector label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border: 2px solid var(--dark);
+  border-radius: 20px;
+  background: white;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+
+.difficulty-selector input[type="radio"] {
+  margin: 0;
+  width: auto;
+  padding: 0;
+  box-shadow: none;
+  border: none;
+  cursor: pointer;
+}
+
+.difficulty-selector input[type="radio"]:checked + label,
+.difficulty-selector label:has(input[type="radio"]:checked) {
+  background: var(--primary);
+  color: white;
+  border-color: var(--primary);
+}
+
+.difficulty-selector label:hover {
+  transform: translateY(-1px);
+}
+
+/* Lobby Screen */
+#screen-lobby p {
+  font-size: 1.1rem;
+  margin: 15px 0;
+  color: var(--dark);
+  font-weight: 700;
+}
+
+#screen-lobby span {
+  color: var(--primary);
+  font-weight: 700;
+}
+
+/* Game Screen */
+#screen-game {
+  display: none;
+  flex-direction: column;
+  align-items: center;
+}
+
+#screen-game.active {
+  display: flex;
+}
+
+.game-header {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.game-header h1 {
+  flex: 1;
+  text-align: center;
+  margin: 0;
+}
+
+.btn-home {
+  background: var(--secondary);
+  padding: 8px 16px;
+  font-size: 0.9rem;
+}
+
+#status {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--dark);
+  margin-bottom: 20px;
+  text-align: center;
+  min-height: 30px;
+}
+
+#board {
+  display: grid;
+  grid-template-columns: repeat(3, 100px);
+  grid-gap: 8px;
+  margin-bottom: 30px;
+}
+
+.cell {
+  width: 100px;
+  height: 100px;
+  background: white;
+  border: 3px solid var(--dark);
+  border-radius: 12px;
+  font-family: 'Fredoka One', sans-serif;
+  font-size: 2.5rem;
+  font-weight: 700;
+  cursor: cell;
+  transition: all 0.2s ease;
+  box-shadow: 3px 3px 0 var(--dark);
+}
+
+.cell:hover:not(:disabled) {
+  transform: scale(1.05);
+  cursor: crosshair;
+}
+
+.cell:active:not(:disabled) {
+  transform: translate(2px, 2px);
+  box-shadow: 1px 1px 0 var(--dark);
+}
+
+.cell:disabled {
+  cursor: not-allowed;
+}
+
+.cell.ai-thinking {
+  animation: ai-pulse 0.5s infinite;
+}
+
+@keyframes ai-pulse {
+  0%, 100% {
+    border-color: var(--dark);
+    box-shadow: 3px 3px 0 var(--dark);
+  }
+  50% {
+    border-color: var(--secondary);
+    box-shadow: 3px 3px 0 var(--secondary);
+  }
+}
+
+/* Cell content styling */
+.cell[style*="--symbol: X"],
+.cell:has(+ :empty) {
+  /* Targets will be set by JavaScript */
+}
+
+/* Buttons */
+button {
+  font-family: 'Nunito', sans-serif;
+  font-size: 1rem;
+  font-weight: 700;
+  padding: 12px 24px;
+  border: 3px solid var(--dark);
+  border-radius: 12px;
+  background: var(--primary);
+  color: white;
+  cursor: pointer;
+  transition: all 0.1s ease;
+  box-shadow: 4px 4px 0 var(--dark);
+  text-transform: uppercase;
+  margin: 10px;
+}
+
+button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 6px 6px 0 var(--dark);
+}
+
+button:active:not(:disabled) {
+  transform: translate(2px, 2px);
+  box-shadow: 2px 2px 0 var(--dark);
+}
+
+button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+#create-room-btn {
+  background: var(--secondary);
+  display: block;
+  margin: 20px auto;
+  width: 100%;
+}
+
+#join-room-btn {
+  background: var(--secondary);
+}
+
+#btn-rematch {
+  background: var(--accent);
+  color: var(--dark);
+  margin-top: 20px;
+  display: none;
+}
+
+/* Input fields */
+input {
+  font-family: 'Nunito', sans-serif;
+  font-size: 1rem;
+  padding: 12px;
+  border: 3px solid var(--dark);
+  border-radius: 12px;
+  background: white;
+  margin: 10px;
+  width: calc(100% - 20px);
+  box-shadow: 3px 3px 0 var(--dark);
+  transition: all 0.2s ease;
+}
+
+input:focus {
+  outline: none;
+  transform: translateY(-2px);
+  box-shadow: 5px 5px 0 var(--dark);
+}
+
+/* Mobile responsive */
+@media (max-width: 480px) {
+  #board {
+    grid-template-columns: repeat(3, 80px);
+    grid-gap: 6px;
+  }
+
+  .cell {
+    width: 80px;
+    height: 80px;
+    font-size: 2rem;
+  }
+
+  h1 {
+    font-size: 2rem;
+  }
+
+  .screen {
+    padding: 25px;
+    border-radius: 15px;
+  }
+}
+
+/* Pulse animation for winning cells */
+@keyframes pulse {
+  0%, 100% {
+    background: var(--accent);
+  }
+  50% {
+    background: var(--primary);
+  }
+}
+
+.cell.winning {
+  animation: pulse 0.6s ease-in-out;
+}

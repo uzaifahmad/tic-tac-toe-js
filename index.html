@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tic Tac Toe</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body data-mode="home">
+    <!-- Home Screen -->
+    <div id="screen-home" class="screen active">
+        <h1>Tic Tac Toe</h1>
+
+        <div class="mode-cards">
+            <!-- Online Multiplayer Card -->
+            <div class="card" id="card-online">
+                <span class="card-emoji">🌐</span>
+                <h2>Online Multiplayer</h2>
+                <button class="btn-create" id="btn-create-room">Create Room</button>
+                <div class="join-section">
+                    <input type="text" id="input-join-room" placeholder="Enter room code" maxlength="6">
+                    <button class="btn-join" id="btn-join-room">Join Room</button>
+                </div>
+            </div>
+
+            <!-- vs Friend Card -->
+            <div class="card" id="card-friend">
+                <span class="card-emoji">🧑‍🤝‍🧑</span>
+                <h2>vs Friend</h2>
+                <p class="card-subtitle">(Same Device)</p>
+                <button class="btn-start" id="btn-start-friend">Start Game</button>
+            </div>
+
+            <!-- vs AI Card -->
+            <div class="card" id="card-ai">
+                <span class="card-emoji">🤖</span>
+                <h2>vs AI</h2>
+                <div class="difficulty-selector">
+                    <input type="radio" id="diff-easy" name="difficulty" value="easy" checked>
+                    <label for="diff-easy">Easy</label>
+                    <input type="radio" id="diff-medium" name="difficulty" value="medium">
+                    <label for="diff-medium">Medium</label>
+                    <input type="radio" id="diff-hard" name="difficulty" value="hard">
+                    <label for="diff-hard">Hard</label>
+                </div>
+                <button class="btn-start" id="btn-start-ai">Start Game</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Lobby Screen -->
+    <div id="screen-lobby" class="screen">
+        <h1>Connecting...</h1>
+        <div class="lobby-content">
+            <p>Room Code: <span id="txt-room-code" class="room-code"></span></p>
+            <p class="waiting-text">Waiting for opponent...</p>
+            <p>You are: <span id="txt-player-role"></span></p>
+        </div>
+    </div>
+
+    <!-- Game Screen -->
+    <div id="screen-game" class="screen">
+        <div class="game-header">
+            <h1>Tic Tac Toe</h1>
+            <button class="btn-home" id="btn-home">← Home</button>
+        </div>
+
+        <div id="status" class="status-bar"></div>
+
+        <div id="board" class="board">
+            <button class="cell" data-index="0"></button>
+            <button class="cell" data-index="1"></button>
+            <button class="cell" data-index="2"></button>
+            <button class="cell" data-index="3"></button>
+            <button class="cell" data-index="4"></button>
+            <button class="cell" data-index="5"></button>
+            <button class="cell" data-index="6"></button>
+            <button class="cell" data-index="7"></button>
+            <button class="cell" data-index="8"></button>
+        </div>
+
+        <button class="btn-rematch" id="btn-rematch">Rematch</button>
+    </div>
+
+    <!-- Firebase SDK (compat 10.x) -->
+    <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-database-compat.js"></script>
+
+    <!-- Firebase Configuration (not committed - see config.example.js) -->
+    <script src="config.js" defer></script>
+
+    <!-- Game Scripts -->
+    <script src="ai.js" defer type="module"></script>
+    <script src="firebase.js" defer type="module"></script>
+    <script src="offline.js" defer type="module"></script>
+    <script src="game.js" defer type="module"></script>
+</body>
+</html>
