@@ -1,0 +1,29 @@
+# Netlify deployment configuration
+# This file configures how Netlify builds and deploys the Tic Tac Toe game
+
+[build]
+command = "npm run build"
+publish = "."
+
+# Environment variables - set these in Netlify UI or CLI
+# VITE_FIREBASE_API_KEY
+# VITE_FIREBASE_AUTH_DOMAIN
+# VITE_FIREBASE_DATABASE_URL
+# VITE_FIREBASE_PROJECT_ID
+# VITE_FIREBASE_STORAGE_BUCKET
+# VITE_FIREBASE_MESSAGING_SENDER_ID
+# VITE_FIREBASE_APP_ID
+
+[[redirects]]
+from = "/*"
+to = "/index.html"
+status = 200
+
+# Headers for security
+[[headers]]
+for = "/*"
+[headers.values]
+X-Content-Type-Options = "nosniff"
+X-Frame-Options = "SAMEORIGIN"
+X-XSS-Protection = "1; mode=block"
+Referrer-Policy = "strict-origin-when-cross-origin"

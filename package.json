@@ -1,0 +1,23 @@
+{
+  "name": "tic-tac-toe-js",
+  "version": "1.0.0",
+  "description": "A fun Tic Tac Toe game with AI and online multiplayer",
+  "main": "game.js",
+  "scripts": {
+    "build": "node scripts/build-config.js",
+    "dev": "npm run build && python -m http.server 8000",
+    "start": "python -m http.server 8000"
+  },
+  "keywords": [
+    "tic-tac-toe",
+    "game",
+    "ai",
+    "firebase",
+    "multiplayer"
+  ],
+  "author": "",
+  "license": "MIT",
+  "engines": {
+    "node": ">=14.0.0"
+  }
+}
