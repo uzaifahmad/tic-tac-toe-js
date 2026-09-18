@@ -1,67 +1,46 @@
-// Helper: Check for winner
-function checkWinner(board) {
-  const lines = [
-    [0, 1, 2],
-    [3, 4, 5],
-    [6, 7, 8],
-    [0, 3, 6],
-    [1, 4, 7],
-    [2, 5, 8],
-    [0, 4, 8],
-    [2, 4, 6]
-  ];
+import { checkWinner, getEmptyCells } from './utils.js';
 
-  for (const [a, b, c] of lines) {
-    if (board[a] && board[a] === board[b] && board[a] === board[c]) {
-      return board[a];
-    }
-  }
-  return null;
-}
+// ---------------------------------------------------------------------------
+// Internal helpers
+// ---------------------------------------------------------------------------
 
-// Helper: Get empty cells
-function getEmptyCells(board) {
-  return board
-    .map((cell, index) => (cell === null ? index : null))
-    .filter(index => index !== null);
-}
-
-// Helper: Find winning move for a symbol
+/**
+ * Finds a single-move winning index for `symbol`, or null if none exists.
+ * @param {Array<string|null>} board
+ * @param {string} symbol
+ * @returns {number|null}
+ */
 function findWinningMove(board, symbol) {
-  const emptyCells = getEmptyCells(board);
-  for (const index of emptyCells) {
+  for (const index of getEmptyCells(board)) {
     const testBoard = [...board];
     testBoard[index] = symbol;
-    if (checkWinner(testBoard) === symbol) {
-      return index;
-    }
+    if (checkWinner(testBoard)) return index;
   }
   return null;
 }
 
-// Helper: Determine current player by counting pieces
+/**
+ * Determines which player should move next based on piece counts.
+ * @param {Array<string|null>} board
+ * @returns {'X'|'O'}
+ */
 function getCurrentPlayer(board) {
   const xCount = board.filter(cell => cell === 'X').length;
   const oCount = board.filter(cell => cell === 'O').length;
   return xCount > oCount ? 'O' : 'X';
 }
 
-// Helper: Minimax with alpha-beta pruning
+/**
+ * Minimax with alpha-beta pruning.  Returns a heuristic score for the board.
+ */
 function minimax(board, depth, isMaximizing, aiSymbol, humanSymbol, alpha, beta) {
-  const winner = checkWinner(board);
+  const result = checkWinner(board);
 
-  // Terminal states
-  if (winner === aiSymbol) {
-    return 10 - depth;
-  }
-  if (winner === humanSymbol) {
-    return depth - 10;
-  }
+  if (result?.symbol === aiSymbol)    return 10 - depth;
+  if (result?.symbol === humanSymbol) return depth - 10;
 
   const emptyCells = getEmptyCells(board);
-  if (emptyCells.length === 0) {
-    return 0; // Draw
-  }
+  if (emptyCells.length === 0) return 0; // draw
 
   if (isMaximizing) {
     let maxScore = -Infinity;
@@ -70,8 +49,8 @@ function minimax(board, depth, isMaximizing, aiSymbol, humanSymbol, alpha, beta)
       newBoard[index] = aiSymbol;
       const score = minimax(newBoard, depth + 1, false, aiSymbol, humanSymbol, alpha, beta);
       maxScore = Math.max(maxScore, score);
-      alpha = Math.max(alpha, score);
-      if (beta <= alpha) break; // Alpha-beta pruning
+      alpha    = Math.max(alpha, score);
+      if (beta <= alpha) break;
     }
     return maxScore;
   } else {
@@ -81,54 +60,63 @@ function minimax(board, depth, isMaximizing, aiSymbol, humanSymbol, alpha, beta)
       newBoard[index] = humanSymbol;
       const score = minimax(newBoard, depth + 1, true, aiSymbol, humanSymbol, alpha, beta);
       minScore = Math.min(minScore, score);
-      beta = Math.min(beta, score);
-      if (beta <= alpha) break; // Alpha-beta pruning
+      beta     = Math.min(beta, score);
+      if (beta <= alpha) break;
     }
     return minScore;
   }
 }
 
-// Easy: 30% chance to take winning move, otherwise random empty cell
+// ---------------------------------------------------------------------------
+// Public AI move functions
+// ---------------------------------------------------------------------------
+
+/**
+ * Easy mode: 30 % chance to take an immediate winning move, otherwise random.
+ * @param {Array<string|null>} board
+ * @returns {number}
+ */
 export function getEasyMove(board) {
   const currentPlayer = getCurrentPlayer(board);
-  const winningMove = findWinningMove(board, currentPlayer);
+  const winningMove   = findWinningMove(board, currentPlayer);
 
-  if (winningMove !== null && Math.random() < 0.3) {
-    return winningMove;
-  }
+  if (winningMove !== null && Math.random() < 0.3) return winningMove;
 
   const emptyCells = getEmptyCells(board);
   return emptyCells[Math.floor(Math.random() * emptyCells.length)];
 }
 
-// Medium: Take winning move, block opponent's, otherwise random
+/**
+ * Medium mode: wins immediately, then blocks, otherwise random.
+ * @param {Array<string|null>} board
+ * @param {string} aiSymbol
+ * @returns {number}
+ */
 export function getMediumMove(board, aiSymbol) {
   const humanSymbol = aiSymbol === 'X' ? 'O' : 'X';
 
-  // Try to win
-  const winningMove = findWinningMove(board, aiSymbol);
-  if (winningMove !== null) {
-    return winningMove;
-  }
+  const winMove   = findWinningMove(board, aiSymbol);
+  if (winMove   !== null) return winMove;
 
-  // Block opponent
-  const blockingMove = findWinningMove(board, humanSymbol);
-  if (blockingMove !== null) {
-    return blockingMove;
-  }
+  const blockMove = findWinningMove(board, humanSymbol);
+  if (blockMove !== null) return blockMove;
 
-  // Random
   const emptyCells = getEmptyCells(board);
   return emptyCells[Math.floor(Math.random() * emptyCells.length)];
 }
 
-// Hard: Minimax with alpha-beta pruning (unbeatable)
+/**
+ * Hard mode: unbeatable Minimax with alpha-beta pruning.
+ * @param {Array<string|null>} board
+ * @param {string} aiSymbol
+ * @returns {number}
+ */
 export function getHardMove(board, aiSymbol) {
   const humanSymbol = aiSymbol === 'X' ? 'O' : 'X';
-  const emptyCells = getEmptyCells(board);
+  const emptyCells  = getEmptyCells(board);
 
   let bestScore = -Infinity;
-  let bestMove = emptyCells[0];
+  let bestMove  = emptyCells[0];
 
   for (const index of emptyCells) {
     const newBoard = [...board];
@@ -136,7 +124,7 @@ export function getHardMove(board, aiSymbol) {
     const score = minimax(newBoard, 0, false, aiSymbol, humanSymbol, -Infinity, Infinity);
     if (score > bestScore) {
       bestScore = score;
-      bestMove = index;
+      bestMove  = index;
     }
   }
 
