@@ -132,6 +132,7 @@ h2 {
   justify-content: center;
   flex-wrap: wrap;
   margin: 15px 0;
+  /* fieldset chrome is reset via the .visible-class block at bottom of file */
 }
 
 .difficulty-selector label {
@@ -244,7 +245,7 @@ h2 {
   padding: 20px;
   box-shadow: 4px 4px 0 var(--dark);
   min-width: 150px;
-  display: none;
+  /* visibility is now controlled by .visible class — see bottom of file */
 }
 
 .leaderboard h3 {
@@ -373,7 +374,7 @@ button:disabled {
   background: var(--accent);
   color: var(--dark);
   margin-top: 20px;
-  display: none;
+  /* visibility is now controlled by .visible class — see bottom of file */
 }
 
 /* Input fields */
@@ -416,6 +417,80 @@ input:focus {
   .screen {
     padding: 25px;
     border-radius: 15px;
+  }
+}
+
+/* ── Visible-only-to-screen-readers utility ──────────────────────────────── */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ── Leaderboard & rematch: shown via JS class toggle ────────────────────── */
+.leaderboard {
+  display: none;
+}
+.leaderboard.visible {
+  display: block;
+}
+
+#btn-rematch {
+  display: none;
+}
+#btn-rematch.visible {
+  display: inline-block;
+}
+
+/* ── Focus-visible keyboard navigation ring ──────────────────────────────── */
+:focus-visible {
+  outline: 3px solid var(--secondary);
+  outline-offset: 3px;
+}
+
+/* ── Invalid input state ─────────────────────────────────────────────────── */
+input[aria-invalid="true"] {
+  border-color: var(--primary);
+  box-shadow: 3px 3px 0 var(--primary);
+}
+
+/* ── Lobby cancel button ─────────────────────────────────────────────────── */
+.btn-cancel {
+  background: transparent;
+  color: var(--dark);
+  border: 2px solid var(--dark);
+  box-shadow: 2px 2px 0 var(--dark);
+  margin-top: 20px;
+  font-size: 0.9rem;
+  padding: 8px 18px;
+}
+.btn-cancel:hover:not(:disabled) {
+  background: var(--primary);
+  color: white;
+  border-color: var(--primary);
+}
+
+/* ── Difficulty selector: strip fieldset chrome ──────────────────────────── */
+.difficulty-selector {
+  border: none;
+  padding: 0;
+  margin: 0;
+}
+
+/* ── Reduce motion for users who prefer it ───────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
 }
 

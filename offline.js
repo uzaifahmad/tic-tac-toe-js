@@ -1,149 +1,136 @@
 import { getEasyMove, getMediumMove, getHardMove } from './ai.js';
+import { checkWinner, checkDraw } from './utils.js';
 
+// ---------------------------------------------------------------------------
 // Offline game state
+// ---------------------------------------------------------------------------
+
 const offlineState = {
-  mode: null,        // 'friend' or 'ai'
-  difficulty: null,  // 'easy', 'medium', 'hard'
-  board: Array(9).fill(null),
+  mode:        null,   // 'friend' | 'ai'
+  difficulty:  null,   // 'easy' | 'medium' | 'hard'
+  board:       Array(9).fill(null),
   currentTurn: 'X',
-  gameOver: false
+  gameOver:    false,
+  aiPending:   false   // prevents overlapping AI move calls
 };
 
-// Winning lines
-const WINNING_LINES = [
-  [0, 1, 2],
-  [3, 4, 5],
-  [6, 7, 8],
-  [0, 3, 6],
-  [1, 4, 7],
-  [2, 5, 8],
-  [0, 4, 8],
-  [2, 4, 6]
-];
+// ---------------------------------------------------------------------------
+// Public API
+// ---------------------------------------------------------------------------
 
-// Helper: Check for winner
-function checkWinner(board) {
-  for (const [a, b, c] of WINNING_LINES) {
-    if (board[a] && board[a] === board[b] && board[a] === board[c]) {
-      return board[a];
-    }
-  }
-  return null;
-}
-
-// Helper: Check for draw
-function checkDraw(board) {
-  if (!Array.isArray(board)) {
-    console.error('checkDraw: board is not an array', board);
-    return false;
-  }
-  return board.every(cell => cell !== null);
-}
-
-// Initialize offline game
+/**
+ * Initialise (or re-initialise) an offline game.
+ * @param {'friend'|'ai'} mode
+ * @param {'easy'|'medium'|'hard'} [difficulty]
+ */
 export function initOfflineGame(mode, difficulty) {
-  offlineState.mode = mode;
-  offlineState.difficulty = difficulty || 'medium';
-  offlineState.board = Array(9).fill(null);
+  offlineState.mode        = mode;
+  offlineState.difficulty  = difficulty || 'medium';
+  offlineState.board       = Array(9).fill(null);
   offlineState.currentTurn = 'X';
-  offlineState.gameOver = false;
+  offlineState.gameOver    = false;
+  offlineState.aiPending   = false;
 
-  // Reset UI
-  if (window.renderBoard) window.renderBoard(offlineState.board);
-  const initialStatus = offlineState.mode === 'ai' ? 'Your turn (X)' : 'Player X\'s turn';
+  if (window.renderBoard)    window.renderBoard(offlineState.board);
+
+  const initialStatus = offlineState.mode === 'ai' ? 'Your turn (X)' : "Player X's turn";
   if (window.updateStatusBar) window.updateStatusBar(initialStatus);
 }
 
-// Handle offline cell click
+/**
+ * Handle a human cell click in offline mode.
+ * @param {number} index - board cell index (0–8)
+ */
 export function handleOfflineCellClick(index) {
-  // Guard: cell not empty
-  if (offlineState.board[index] !== null) {
+  // Guards
+  if (offlineState.gameOver)               return;
+  if (offlineState.board[index] !== null)  return;
+  // Prevent human input while AI is computing
+  if (offlineState.mode === 'ai' && offlineState.currentTurn === 'O') return;
+
+  _placeSymbol(index, offlineState.currentTurn);
+}
+
+/**
+ * Reset to the same mode/difficulty as the previous game.
+ */
+export function resetOfflineGame() {
+  initOfflineGame(offlineState.mode, offlineState.difficulty);
+}
+
+// ---------------------------------------------------------------------------
+// Internal helpers
+// ---------------------------------------------------------------------------
+
+/**
+ * Place a symbol on the board, check for end-state, then switch turns.
+ * @param {number} index
+ * @param {'X'|'O'} symbol
+ */
+function _placeSymbol(index, symbol) {
+  offlineState.board[index] = symbol;
+
+  if (window.renderBoard) window.renderBoard(offlineState.board);
+
+  const winResult = checkWinner(offlineState.board);
+  if (winResult) {
+    offlineState.gameOver  = true;
+    offlineState.aiPending = false;
+    if (window.renderResult) window.renderResult('won', winResult.symbol, winResult.line);
     return;
   }
 
-  // Guard: game not over
-  if (offlineState.gameOver) {
-    return;
-  }
-
-  // Place current player's symbol
-  offlineState.board[index] = offlineState.currentTurn;
-
-  // Check win/draw
-  const winner = checkWinner(offlineState.board);
-  const isDraw = checkDraw(offlineState.board);
-
-  if (winner) {
-    offlineState.gameOver = true;
-    if (window.renderResult) window.renderResult('won', winner);
-    if (window.renderBoard) window.renderBoard(offlineState.board);
-    return;
-  }
-
-  if (isDraw) {
-    offlineState.gameOver = true;
-    if (window.renderResult) window.renderResult('draw', null);
-    if (window.renderBoard) window.renderBoard(offlineState.board);
+  if (checkDraw(offlineState.board)) {
+    offlineState.gameOver  = true;
+    offlineState.aiPending = false;
+    if (window.renderResult) window.renderResult('draw', null, null);
     return;
   }
 
   // Switch turn
   offlineState.currentTurn = offlineState.currentTurn === 'X' ? 'O' : 'X';
-  const statusText = `Current turn: ${offlineState.currentTurn} ${offlineState.mode === 'ai' && offlineState.currentTurn === 'O' ? '(AI thinking)' : ''}`;
-  if (window.updateStatusBar) window.updateStatusBar(statusText);
-  if (window.renderBoard) window.renderBoard(offlineState.board);
 
-  // If AI mode and O's turn, trigger AI move with delay
-  if (offlineState.mode === 'ai' && offlineState.currentTurn === 'O' && !offlineState.gameOver) {
-    setTimeout(triggerAIMove, 350);
+  if (offlineState.mode === 'ai' && offlineState.currentTurn === 'O') {
+    if (window.updateStatusBar) window.updateStatusBar('AI thinking…');
+    // Guard against double-scheduling
+    if (!offlineState.aiPending) {
+      offlineState.aiPending = true;
+      setTimeout(_triggerAIMove, 380);
+    }
+  } else {
+    const statusText = offlineState.mode === 'ai'
+      ? 'Your turn (X)'
+      : `Player ${offlineState.currentTurn}'s turn`;
+    if (window.updateStatusBar) window.updateStatusBar(statusText);
   }
 }
 
-// Trigger AI move
-export function triggerAIMove() {
-  if (offlineState.gameOver) {
-    return;
-  }
+/**
+ * Execute the AI move (called after a short delay for UX).
+ */
+function _triggerAIMove() {
+  offlineState.aiPending = false;
+
+  if (offlineState.gameOver) return;
 
   let moveIndex;
+  const { board, difficulty } = offlineState;
 
-  if (offlineState.difficulty === 'easy') {
-    moveIndex = getEasyMove(offlineState.board);
-  } else if (offlineState.difficulty === 'medium') {
-    moveIndex = getMediumMove(offlineState.board, 'O');
+  if (difficulty === 'easy') {
+    moveIndex = getEasyMove(board);
+  } else if (difficulty === 'medium') {
+    moveIndex = getMediumMove(board, 'O');
   } else {
-    moveIndex = getHardMove(offlineState.board, 'O');
+    moveIndex = getHardMove(board, 'O');
   }
 
-  // Place AI symbol
-  offlineState.board[moveIndex] = 'O';
-
-  // Check win/draw
-  const winner = checkWinner(offlineState.board);
-  const isDraw = checkDraw(offlineState.board);
-
-  if (winner) {
-    offlineState.gameOver = true;
-    if (window.renderResult) window.renderResult('won', 'O');
-    if (window.renderBoard) window.renderBoard(offlineState.board);
-    return;
+  // Safety fallback: if AI returns undefined/null pick any free cell
+  if (moveIndex === undefined || moveIndex === null) {
+    const free = board.map((v, i) => v === null ? i : null).filter(i => i !== null);
+    if (free.length === 0) return;
+    moveIndex = free[0];
   }
 
-  if (isDraw) {
-    offlineState.gameOver = true;
-    if (window.renderResult) window.renderResult('draw', null);
-    if (window.renderBoard) window.renderBoard(offlineState.board);
-    return;
-  }
-
-  // Switch back to X
-  offlineState.currentTurn = 'X';
-  const statusText = offlineState.mode === 'ai' ? 'Your turn (X)' : 'Player X\'s turn';
-  if (window.updateStatusBar) window.updateStatusBar(statusText);
-  if (window.renderBoard) window.renderBoard(offlineState.board);
+  _placeSymbol(moveIndex, 'O');
 }
 
-// Reset offline game with same settings
-export function resetOfflineGame() {
-  initOfflineGame(offlineState.mode, offlineState.difficulty);
-}

@@ -3,98 +3,112 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy"
+          content="default-src 'self'; script-src 'self' https://www.gstatic.com; style-src 'self' https://fonts.googleapis.com 'unsafe-inline'; font-src https://fonts.gstatic.com; connect-src https://*.firebaseio.com https://*.googleapis.com; img-src 'self' data:;">
     <title>Tic Tac Toe</title>
     <link rel="stylesheet" href="style.css">
-    <!-- Favicon -->
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 fill=%22%23FFF8E7%22/><line x1=%2225%22 y1=%220%22 x2=%2225%22 y2=%22100%22 stroke=%22%232C3E50%22 stroke-width=%228%22/><line x1=%2275%22 y1=%220%22 x2=%2275%22 y2=%22100%22 stroke=%22%232C3E50%22 stroke-width=%228%22/><line x1=%220%22 y1=%2225%22 x2=%22100%22 y2=%2225%22 stroke=%22%232C3E50%22 stroke-width=%228%22/><line x1=%220%22 y1=%2275%22 x2=%22100%22 y2=%2275%22 stroke=%22%232C3E50%22 stroke-width=%228%22/></svg>">
 </head>
 <body data-mode="home">
     <!-- Home Screen -->
-    <div id="screen-home" class="screen active">
+    <div id="screen-home" class="screen active" role="main">
         <h1>Tic Tac Toe</h1>
 
-        <div class="mode-cards">
+        <div class="mode-cards" role="list">
             <!-- Online Multiplayer Card -->
-            <div class="card" id="card-online">
-                <span class="card-emoji">🌐</span>
+            <div class="card" id="card-online" role="listitem">
+                <span class="card-emoji" aria-hidden="true">🌐</span>
                 <h2>Online Multiplayer</h2>
-                <button class="btn-create" id="btn-create-room">Create Room</button>
+                <button class="btn-create" id="btn-create-room" aria-label="Create a new online room">Create Room</button>
                 <div class="join-section">
-                    <input type="text" id="input-join-room" placeholder="Enter room code" maxlength="6">
-                    <button class="btn-join" id="btn-join-room">Join Room</button>
+                    <label for="input-join-room" class="sr-only">Room code</label>
+                    <input type="text" id="input-join-room"
+                           placeholder="Enter room code"
+                           maxlength="6"
+                           autocomplete="off"
+                           spellcheck="false"
+                           aria-label="Room code (6 characters)"
+                           pattern="[A-Z0-9]{6}">
+                    <button class="btn-join" id="btn-join-room" aria-label="Join room with entered code">Join Room</button>
                 </div>
             </div>
 
             <!-- vs Friend Card -->
-            <div class="card" id="card-friend">
-                <span class="card-emoji">🧑‍🤝‍🧑</span>
+            <div class="card" id="card-friend" role="listitem">
+                <span class="card-emoji" aria-hidden="true">🧑‍🤝‍🧑</span>
                 <h2>vs Friend</h2>
                 <p class="card-subtitle">(Same Device)</p>
-                <button class="btn-start" id="btn-start-friend">Start Game</button>
+                <button class="btn-start" id="btn-start-friend" aria-label="Start a same-device two-player game">Start Game</button>
             </div>
 
             <!-- vs AI Card -->
-            <div class="card" id="card-ai">
-                <span class="card-emoji">🤖</span>
+            <div class="card" id="card-ai" role="listitem">
+                <span class="card-emoji" aria-hidden="true">🤖</span>
                 <h2>vs AI</h2>
-                <div class="difficulty-selector">
-                    <input type="radio" id="diff-easy" name="difficulty" value="easy" checked>
+                <fieldset class="difficulty-selector">
+                    <legend class="sr-only">AI difficulty</legend>
+                    <input type="radio" id="diff-easy"   name="difficulty" value="easy"   checked>
                     <label for="diff-easy">Easy</label>
                     <input type="radio" id="diff-medium" name="difficulty" value="medium">
                     <label for="diff-medium">Medium</label>
-                    <input type="radio" id="diff-hard" name="difficulty" value="hard">
+                    <input type="radio" id="diff-hard"   name="difficulty" value="hard">
                     <label for="diff-hard">Hard</label>
-                </div>
-                <button class="btn-start" id="btn-start-ai">Start Game</button>
+                </fieldset>
+                <button class="btn-start" id="btn-start-ai" aria-label="Start game against AI">Start Game</button>
             </div>
         </div>
     </div>
 
     <!-- Lobby Screen -->
-    <div id="screen-lobby" class="screen">
-        <h1>Connecting...</h1>
+    <div id="screen-lobby" class="screen" role="main" aria-live="polite">
+        <h1>Connecting…</h1>
         <div class="lobby-content">
-            <p>Room Code: <span id="txt-room-code" class="room-code"></span></p>
-            <p class="waiting-text">Waiting for opponent...</p>
+            <p>Room Code:
+                <span id="txt-room-code" class="room-code" title="Click to copy" tabindex="0" role="button" aria-label="Room code, click to copy"></span>
+            </p>
+            <p class="waiting-text">Waiting for opponent…</p>
             <p>You are: <span id="txt-player-role"></span></p>
+            <button class="btn-cancel" id="btn-lobby-cancel" aria-label="Cancel and return to home">✕ Cancel</button>
         </div>
     </div>
 
     <!-- Game Screen -->
-    <div id="screen-game" class="screen">
+    <div id="screen-game" class="screen" role="main">
         <div class="game-header">
+            <button class="btn-home" id="btn-home" aria-label="Return to home screen">← Home</button>
             <h1>Tic Tac Toe</h1>
-            <button class="btn-home" id="btn-home">← Home</button>
         </div>
 
-        <div id="status" class="status-bar"></div>
+        <div id="status" class="status-bar" role="status" aria-live="polite" aria-atomic="true"></div>
 
         <div class="game-container">
-            <div id="board" class="board">
-                <button class="cell" data-index="0"></button>
-                <button class="cell" data-index="1"></button>
-                <button class="cell" data-index="2"></button>
-                <button class="cell" data-index="3"></button>
-                <button class="cell" data-index="4"></button>
-                <button class="cell" data-index="5"></button>
-                <button class="cell" data-index="6"></button>
-                <button class="cell" data-index="7"></button>
-                <button class="cell" data-index="8"></button>
+            <div id="board" class="board"
+                 role="grid"
+                 aria-label="Tic Tac Toe board">
+                <button class="cell" data-index="0" role="gridcell" aria-label="Cell 1: empty"></button>
+                <button class="cell" data-index="1" role="gridcell" aria-label="Cell 2: empty"></button>
+                <button class="cell" data-index="2" role="gridcell" aria-label="Cell 3: empty"></button>
+                <button class="cell" data-index="3" role="gridcell" aria-label="Cell 4: empty"></button>
+                <button class="cell" data-index="4" role="gridcell" aria-label="Cell 5: empty"></button>
+                <button class="cell" data-index="5" role="gridcell" aria-label="Cell 6: empty"></button>
+                <button class="cell" data-index="6" role="gridcell" aria-label="Cell 7: empty"></button>
+                <button class="cell" data-index="7" role="gridcell" aria-label="Cell 8: empty"></button>
+                <button class="cell" data-index="8" role="gridcell" aria-label="Cell 9: empty"></button>
             </div>
 
-            <!-- Leaderboard -->
-            <div id="leaderboard" class="leaderboard">
+            <!-- Stats panel -->
+            <aside id="leaderboard" class="leaderboard" aria-label="Game statistics">
                 <h3>📊 Stats</h3>
                 <div id="stats-content">
-                    <p>Wins: <span id="stat-wins">0</span></p>
+                    <p>Wins:   <span id="stat-wins">0</span></p>
                     <p>Losses: <span id="stat-losses">0</span></p>
-                    <p>Draws: <span id="stat-draws">0</span></p>
+                    <p>Draws:  <span id="stat-draws">0</span></p>
                 </div>
-            </div>
+            </aside>
         </div>
 
         <div class="game-actions">
-            <button class="btn-rematch" id="btn-rematch">🔄 Rematch</button>
+            <button class="btn-rematch" id="btn-rematch" aria-label="Request a rematch">🔄 Rematch</button>
         </div>
     </div>
 
@@ -102,13 +116,14 @@
     <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-database-compat.js"></script>
 
-    <!-- Firebase Configuration (not committed - see config.example.js) -->
-    <script src="config.js" defer></script>
+    <!-- Firebase Configuration (not committed — see config.example.js) -->
+    <script src="config.js"></script>
 
-    <!-- Game Scripts -->
-    <script src="ai.js" defer type="module"></script>
-    <script src="firebase.js" defer type="module"></script>
-    <script src="offline.js" defer type="module"></script>
-    <script src="game.js" defer type="module"></script>
+    <!-- Game Scripts (ES modules) -->
+    <script src="utils.js"    type="module" defer></script>
+    <script src="ai.js"       type="module" defer></script>
+    <script src="firebase.js" type="module" defer></script>
+    <script src="offline.js"  type="module" defer></script>
+    <script src="game.js"     type="module" defer></script>
 </body>
 </html>
